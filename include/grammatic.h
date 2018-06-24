@@ -2,6 +2,8 @@
 #include <stdbool.h>
 #include "hashtable.h"
 
+#define E -3;
+
 struct Grammatic
 {
 	char startNterm;
@@ -11,7 +13,9 @@ struct Grammatic
 
 	int countTerm;
 	int countNterm;
-	int countProduct;
+
+	char** FirstSets;
+	char** FollowSets;
 };
 
 void InitGrammatic(struct Grammatic *g,char startNterm, char * term, int numTerm, char * nterm, int numNterm);
@@ -22,3 +26,7 @@ bool IsNterm(struct Grammatic *g, char c);
 
 void AddProduct(struct Grammatic *g, char nterm, char* product);
 
+void CreateFirstSets(struct Grammatic *g);
+void CreateFollowSets(struct Grammatic *g);
+char* FIRST(struct Grammatic *g, char c);
+char* FOLLOW(struct Grammatic *g, char c);

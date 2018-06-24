@@ -24,6 +24,7 @@ struct HashTable
 unsigned long HashFunc(const TKey key);
 
 void InitTab(struct HashTable* ht, unsigned int size);
+void InitInsert(struct HashTable* ht, TKey k);
 void ClearTable(struct HashTable* ht);
 
 bool IsTabEmpty(struct HashTable* ht);

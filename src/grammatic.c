@@ -20,7 +20,7 @@ void InitGrammatic(struct Grammatic *g, char startNterm, char * term, int numTer
 		InitInsert(&g->product, nterm[i]);
 
 	g->FirstSets = NULL;
-	g->FollowSets = calloc(numNterm, sizeof(char*));
+	g->FollowSets = NULL;
 }
 
 bool IsTerm(struct Grammatic *g, char c)
@@ -54,19 +54,58 @@ void AddProduct(struct Grammatic *g, char nterm, char * product)
 }
 
 void CreateFirstSets(struct Grammatic *g) {
-	//Ќет проверки на порождение "пустого" терминала
-	char* c;
-	for (c = g->nterm; *c != '\0'; c++) {
-		char** tmp = FindRecordTab(&g->product, *c);
-		int count = g->product.recs[g->product.currPos]->countValues;
+	char** waiting = calloc(2, sizeof(char*));
+	bool* ready = calloc(g->countNterm, sizeof(bool));
 
-		if (tmp == NULL) continue;
+	waiting[0] = calloc(g->countNterm*g->countNterm + g->countNterm, sizeof(char));
+	waiting[1] = calloc(g->countNterm*g->countNterm + g->countNterm, sizeof(char));
 
-		char* res = calloc(count + 1, sizeof(char));
-		for (int i = 0; i < count; i++)
-			res[i] = tmp[i][0];
-		res[count] = '\0';
-		g->FirstSets[g->product.currPos] = res;
+	int j = 0;	char currNterm = g->nterm[0];
+
+	for (int numNterm = 0; numNterm < g->countNterm; numNterm++, currNterm = g->nterm[numNterm]) {
+		char** tmp = FindRecordTab(&g->product, currNterm);
+		g->FirstSets[g->product.currPos] = calloc(g->countTerm*g->countNterm, sizeof(char)); //!!!
+		g->FirstSets[g->product.currPos][0] = '\0';
+
+		if (tmp != NULL) {
+			int count = g->product.recs[g->product.currPos]->countValues;
+
+			//ѕроход по продукци€м нетерминала
+			int oldIndex = j;
+			for (int k = 0; k < count; k++) {
+				char c_proc = tmp[k][0];
+
+				if (IsNterm(g, c_proc)) {
+					waiting[0][j] = currNterm;
+					waiting[1][j++] = c_proc;
+				}
+				else strncat(g->FirstSets[g->product.currPos], &c_proc, 1);
+			}
+			if (j == oldIndex) ready[g->product.currPos] = true;
+			else ready[g->product.currPos] = false;
+		}
+	}
+	int i = 0, countReady = 0;
+	while (1) {
+		if (waiting[0][i] != -1) {
+			FindRecordTab(&g->product, waiting[1][i]);
+			int currPos = g->product.currPos;
+			if (ready[currPos]) {
+				FindRecordTab(&g->product, waiting[0][i]);
+				strcat(g->FirstSets[g->product.currPos], g->FirstSets[currPos]);
+
+				char tmp = waiting[0][i];
+				
+				waiting[0][i] = -1;
+
+				if (strchr(waiting[0], tmp) == NULL)
+					ready[g->product.currPos] = true;
+
+				countReady++;
+			}
+		}
+		if (countReady == j) break;
+		i = (i + 1) % j;
 	}
 }
 
@@ -75,10 +114,10 @@ void CreateFollowSets(struct Grammatic *g) {
 	char*** tmpFollowSet; //ћассив  где дл€ каждого нетерминала содержитс€ массив указателей
 	char c = g->startNterm;
 
-	tmpFollowSet = calloc(g->countNterm, sizeof(char*));
+	tmpFollowSet = calloc(g->countNterm + 1, sizeof(char*));
 	for (int i = 0; i < g->countNterm; i++) {
 		tmpFollowSet[i] = calloc(g->countNterm * 2 + 1, sizeof(char));
-		g->FollowSets[i] = calloc(g->countTerm, sizeof(char));
+		g->FollowSets[i] = calloc(g->countTerm*g->countNterm, sizeof(char));
 	}
 
 	FindRecordTab(&g->product, c);
@@ -100,7 +139,8 @@ void CreateFollowSets(struct Grammatic *g) {
 							FindRecordTab(&g->product, *c_proc);
 							while (tmp[g->product.currPos][j] != NULL) j++;
 							tmp[g->product.currPos][j] = g->FollowSets[g->product.currPos];
-						} else {
+						}
+						else {
 							int j = 0;
 							FindRecordTab(&g->product, *c_proc);
 							while (tmp[g->product.currPos][j] != NULL) j++;
@@ -113,6 +153,13 @@ void CreateFollowSets(struct Grammatic *g) {
 		}
 	}
 
+	for (int i = 0, c = g->nterm[0]; i < g->countNterm; c = g->nterm[i], i++) {
+		FindRecordTab(&g->product, c);
+		
+		for (int j = 0; tmpFollowSet[g->product.currPos][j] != NULL; j++) {
+			strcat(g->FollowSets[g->product.currPos], tmpFollowSet[g->product.currPos][j]);
+		}
+	}
 	free(tmpFollowSet);
 }
 
@@ -122,12 +169,8 @@ char* FIRST(struct Grammatic *g, char c) {
 			g->FirstSets = calloc(g->countNterm, sizeof(char*));
 			CreateFirstSets(g);
 		}
-		char** tmp = FindRecordTab(&g->product, c);
-
-		if (tmp == NULL) 
-			return NULL;
-		else 
-			return g->FirstSets[g->product.currPos];
+		FindRecordTab(&g->product, c);
+		return g->FirstSets[g->product.currPos];
 	}
 	else if (IsTerm(g, c)) {
 		char res[2];
@@ -142,11 +185,8 @@ char* FOLLOW(struct Grammatic *g, char c) {
 			g->FollowSets = calloc(g->countNterm, sizeof(char*));
 			CreateFollowSets(g);
 		}
-		char** tmp = FindRecordTab(&g->product, c);
-
-		if (tmp == NULL)
-			return NULL;
-		else
-			return g->FollowSets[g->product.currPos];
+		FindRecordTab(&g->product, c);
+		
+		return g->FollowSets[g->product.currPos];
 	}
 }

@@ -24,14 +24,20 @@ int main(int argc, char *argv[]) {
 	}
 
 	struct Grammatic g;
-	InitGrammatic(&g,'S', "012'", 4, "SB", 2);
-	AddProduct(&g, 'S', "B'2'");
-	AddProduct(&g, 'B', "'1'|'2'");
+	//InitGrammatic(&g,'S', "012'", 4, "SB", 2);
+	//AddProduct(&g, 'S', "B2");
+	//AddProduct(&g, 'B', "1|2");
 
-	for (int i = 0; i < g.product.dataCount; i++) {
-		if (g.product.recs[i] != NULL)
-			for (int j = 0; j < g.product.recs[i]->countValues; j++)
-				printf("%s", g.product.recs[i]->value[j]);
+	InitGrammatic(&g,'E', "+*()i", 5, "EKTMF", 5);
+	AddProduct(&g, 'E', "TK");
+	AddProduct(&g, 'K', "+TK");
+	AddProduct(&g, 'T', "FK");
+	AddProduct(&g, 'M', "*FK");
+	AddProduct(&g, 'F', "(E)|i");
+	char* c = g.nterm;
+	for (; *c != '\0'; c++) {
+		printf("%c : ", *c);
+		printf("%s\n", FIRST(&g, *c));
 	}
 	return EXIT_SUCCESS;
 }

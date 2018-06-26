@@ -19,6 +19,7 @@ struct Grammatic
 };
 
 void InitGrammatic(struct Grammatic *g,char startNterm, char * term, int numTerm, char * nterm, int numNterm);
+void InitInsert(struct HashTable* ht, TKey k);
 void ClearGrammatic(struct Grammatic *g);
 
 bool IsTerm(struct Grammatic *g, char c);

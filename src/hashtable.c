@@ -25,26 +25,6 @@ void InitTab(struct HashTable* ht, unsigned int size) {
 		ht->dataCount = 0;
 }
 
-void InitInsert(struct HashTable* ht, TKey k) {
-	if (ht->recs == NULL) return NULL;
-
-	ht->currPos = HashFunc(k) % ht->memSize;
-
-	for (int i = 0; i < ht->memSize; i++)
-	{
-		if (ht->recs[ht->currPos] == NULL)
-		{
-			ht->recs[ht->currPos] = (TElem*)calloc(1, sizeof(struct Record));
-			ht->recs[ht->currPos]->key = k;
-
-			ht->recs[ht->currPos]->value = (TElem*)calloc(1, sizeof(TElem));
-			ht->recs[ht->currPos]->countValues = 0;
-			break;
-		}
-		ht->currPos = (ht->currPos + HASH_STEP) % ht->memSize;
-	}
-}
-
 bool IsTabEmpty(struct HashTable* ht) {
 	return ht->dataCount == 0;
 }
@@ -66,6 +46,7 @@ TElem* FindRecordTab(struct HashTable* ht, TKey k)
 	}
 	return NULL;
 }
+
 void InsRecordTab(struct HashTable* ht, TKey k, TElem val)
 {
 	if (ht->recs == NULL) return NULL;

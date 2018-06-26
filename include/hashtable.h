@@ -24,12 +24,11 @@ struct HashTable
 unsigned long HashFunc(const TKey key);
 
 void InitTab(struct HashTable* ht, unsigned int size);
-void InitInsert(struct HashTable* ht, TKey k);
 void ClearTable(struct HashTable* ht);
 
 bool IsTabEmpty(struct HashTable* ht);
 bool IsTabFull(struct HashTable* ht);
 
 TElem* FindRecordTab(struct HashTable* ht, TKey k);
-void InsRecordTab(struct HashTable* ht, TKey k, TElem val); //The insert function is modified
+void InsRecordTab(struct HashTable* ht, TKey k, TElem val); 
 void DelRecordTab(struct HashTable* ht, TKey k);

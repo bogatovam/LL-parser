@@ -31,13 +31,14 @@ int main(int argc, char *argv[]) {
 	InitGrammatic(&g,'E', "+*()i", 5, "EKTMF", 5);
 	AddProduct(&g, 'E', "TK");
 	AddProduct(&g, 'K', "+TK");
-	AddProduct(&g, 'T', "FK");
-	AddProduct(&g, 'M', "*FK");
+	AddProduct(&g, 'T', "FM");
+	AddProduct(&g, 'M', "*FM");
 	AddProduct(&g, 'F', "(E)|i");
 	char* c = g.nterm;
 	for (; *c != '\0'; c++) {
-		printf("%c : ", *c);
-		printf("%s\n", FIRST(&g, *c));
+		printf("%c ", *c);
+		printf("FOLLOW: %s,\t", FOLLOW(&g, *c));
+		printf("FIRST: %s\n", FIRST(&g, *c));
 	}
 	return EXIT_SUCCESS;
 }

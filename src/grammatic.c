@@ -1,9 +1,10 @@
 #define _CRT_SECURE_NO_WARNINGS
 
-#include "grammatic.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "grammatic.h"
 
 void InitGrammatic(struct Grammatic *g, char startNterm, char * term, int numTerm, char * nterm, int numNterm)
 {
@@ -14,13 +15,36 @@ void InitGrammatic(struct Grammatic *g, char startNterm, char * term, int numTer
 	g->countNterm = numNterm;
 	g->countTerm = numTerm;
 
-	//лучше проинициализировать сразу всеми нетерминалами - поиск несуществующих будет предсказуемым
 	InitTab(&g->product, numNterm);
 	for (int i = 0; i < g->countNterm; i++)
 		InitInsert(&g->product, nterm[i]);
 
 	g->FirstSets = NULL;
 	g->FollowSets = NULL;
+}
+
+void InitInsert(struct HashTable* ht, TKey k) {
+	if (ht->recs == NULL) return;
+
+	ht->currPos = HashFunc(k) % ht->memSize;
+
+	for (int i = 0; i < ht->memSize; i++)
+	{
+		if (ht->recs[ht->currPos] == NULL)
+		{
+			ht->recs[ht->currPos] = (TElem*)calloc(1, sizeof(struct Record));
+			ht->recs[ht->currPos]->key = k;
+
+			ht->recs[ht->currPos]->value = (TElem*)calloc(1, sizeof(TElem));
+			ht->recs[ht->currPos]->countValues = 0;
+			break;
+		}
+		ht->currPos = (ht->currPos + HASH_STEP) % ht->memSize;
+	}
+}
+
+void ClearGrammatic(struct Grammatic *g) {
+
 }
 
 bool IsTerm(struct Grammatic *g, char c)
@@ -70,7 +94,6 @@ void CreateFirstSets(struct Grammatic *g) {
 		if (tmp != NULL) {
 			int count = g->product.recs[g->product.currPos]->countValues;
 
-			//ѕроход по продукци€м нетерминала
 			int oldIndex = j; 
 			for (int k = 0; k < count; k++) {
 				char c_proc = tmp[k][0];
@@ -107,6 +130,11 @@ void CreateFirstSets(struct Grammatic *g) {
 		if (countReady == j) break;
 		i = (i + 1) % j;
 	}
+
+	free(waiting[1]);
+	free(waiting[0]);
+	free(waiting);
+	free(ready);
 }
 
 void CreateFollowSets(struct Grammatic *g) {
@@ -125,7 +153,7 @@ void CreateFollowSets(struct Grammatic *g) {
 
 	FindRecordTab(&g->product, g->startNterm);
 	strcat(g->FollowSets[g->product.currPos], "$");
-	//ƒобавить необходимые множества ферст в фаллов терминалов
+	//ƒобавить необходимые множества first в follow нетерминалов
 	char currNterm = g->nterm[0];
 	int j = 0;
 
@@ -140,7 +168,16 @@ void CreateFollowSets(struct Grammatic *g) {
 						if (*(c_proc + 1) != '\0') {
 							FindRecordTab(&g->product, *c_proc);
 							int tmpPos = g->product.currPos;
-							strcat(g->FollowSets[tmpPos], FIRST(g, *(c_proc + 1)));
+
+							//strcat(g->FollowSets[tmpPos], FIRST(g, *(c_proc + 1)));
+
+							char* first = FIRST(g, *(c_proc + 1));
+							while (*first != '\0') {
+								if (strchr(g->FollowSets[tmpPos], *first) == NULL)
+									strncat(g->FollowSets[tmpPos], first, 1);
+								first++;
+							}
+
 							changed[tmpPos] = true;
 						}
 						else if (*c_proc != currNterm) {
@@ -152,8 +189,6 @@ void CreateFollowSets(struct Grammatic *g) {
 			}
 		}
 	}
-
-
 
 	while (flag) {
 		flag = false;
@@ -182,6 +217,11 @@ void CreateFollowSets(struct Grammatic *g) {
 			i = (i + 1) % j;
 		}
 	}
+
+	free(waiting[1]);
+	free(waiting[0]);
+	free(waiting);
+	free(changed);
 }
 
 char* FIRST(struct Grammatic *g, char c) {
@@ -194,7 +234,7 @@ char* FIRST(struct Grammatic *g, char c) {
 		return g->FirstSets[g->product.currPos];
 	}
 	else if (IsTerm(g, c)) {
-		char res[2];
+		char* res = calloc(2, sizeof(char));
 		res[0] = c; res[1] = '\0';
 		return res;
 	}

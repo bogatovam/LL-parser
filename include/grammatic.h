@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include "hashtable.h"
 
-#define E -3;
+#define e "^"
 
 struct Grammatic
 {
@@ -29,5 +29,6 @@ void AddProduct(struct Grammatic *g, char nterm, char* product);
 
 void CreateFirstSets(struct Grammatic *g);
 void CreateFollowSets(struct Grammatic *g);
+
 char* FIRST(struct Grammatic *g, char c);
 char* FOLLOW(struct Grammatic *g, char c);

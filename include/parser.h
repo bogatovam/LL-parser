@@ -11,4 +11,4 @@ struct LL_Parser
 void InitParser(struct LL_Parser *p, struct Grammatic *g);
 
 void CreateParserTable(struct LL_Parser *p, struct Grammatic *g);
-bool Parse(struct LL_Parser *p, char* str);
+bool Parse(struct LL_Parser *p,struct Grammatic *g,  char* str);

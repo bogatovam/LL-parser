@@ -4,7 +4,7 @@
 #define HASH_STEP 3
 
 typedef char TKey;
-typedef char* TElem;
+typedef void* TElem;
 
 struct Record
 {
@@ -32,3 +32,4 @@ bool IsTabFull(struct HashTable* ht);
 TElem* FindRecordTab(struct HashTable* ht, TKey k);
 void InsRecordTab(struct HashTable* ht, TKey k, TElem val); 
 void DelRecordTab(struct HashTable* ht, TKey k);
+

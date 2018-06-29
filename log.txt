@@ -1,0 +1,14 @@
+S: FIRST: 10	FOLLOW: $
+B: FIRST: 10	FOLLOW: 2
+
+---------------------
+-----Parser Table----
+---------------------
+
+	0	 1	 2	 $	 
+S	S->B2	S->B2	err	err	
+B	B->0	B->1	err	err	
+
+
+The string to be parsed: 12 
+Success! String derived from the grammar 

@@ -1,14 +1,16 @@
 #pragma once
-#include "grammatic.h"
+#include "grammar.h"
 #include "hashtable.h"
 #include "stack.h"
 
-struct LL_Parser
-{
-	struct HashTable parserTable;
-};
+typedef struct LL_Parser {
+	HashTable parserTable;
+} LL_Parser;
 
-void InitParser(struct LL_Parser *p, struct Grammatic *g);
+void InitParser(LL_Parser *p, Grammar *g);
+void ClearParser(LL_Parser *p);
 
-void CreateParserTable(struct LL_Parser *p, struct Grammatic *g);
-bool Parse(struct LL_Parser *p,struct Grammatic *g,  char* str);
+void CreateParserTable(LL_Parser *p, Grammar *g);
+bool Parse(LL_Parser *p,Grammar *g, char* str);
+
+void PrintParserTable(LL_Parser *p, Grammar *g);

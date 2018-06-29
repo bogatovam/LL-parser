@@ -1,22 +1,19 @@
 #pragma once
 #include <stdbool.h>
 
-struct Link
-{
+typedef struct Link {
 	void* value;
 	struct Link* next;
-};
-struct Stack
-{
-	struct Link* first;
+} Link;
+
+typedef struct Stack {
+	Link* first;
 	int dataCount; 
-};
+} Stack;
 
-void InitStack(struct Stack* st);
-bool IsStackEmpty(struct Stack* st);
+void InitStack(Stack* st);
+bool IsStackEmpty(Stack* st);
 
-void Push(struct Stack* st, void* val);
-void* Pop(struct Stack* st);
-void* Top(struct Stack* st);
-
-
+void Push(Stack* st, void* val);
+void* Pop(Stack* st);
+void* Top(Stack* st);

@@ -4,8 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-unsigned long HashFunc(const TKey key)
-{
+unsigned long HashFunc(const TKey key) {
 	unsigned long hashval = 0;
 	int tmp = (int)key;
 
@@ -16,7 +15,7 @@ unsigned long HashFunc(const TKey key)
 	return hashval;
 }
 
-void InitTab(struct HashTable* ht, unsigned int size) {
+void InitTab(HashTable* ht, unsigned int size) {
 		ht->recs = calloc(size, sizeof(struct Record*));
 		for (int i = 0; i < size; i++)
 			ht->recs[i] = NULL;
@@ -25,16 +24,39 @@ void InitTab(struct HashTable* ht, unsigned int size) {
 		ht->dataCount = 0;
 }
 
-bool IsTabEmpty(struct HashTable* ht) {
+void ClearTable(HashTable * ht) {
+	if (ht->recs != NULL) {
+		for (int i = 0; i < ht->memSize; i++) {
+			if (ht->recs[i] != NULL) {
+				int count = ht->recs[i]->countValues;
+				for (int i = 0; i < count; i++)
+					if (ht->recs[i]->value[i] != NULL) {
+						free(ht->recs[i]->value[i]);
+						ht->recs[i]->countValues = 0;
+						ht->recs[i]->value = NULL;
+					}
+				free(ht->recs[i]);
+				ht->recs[i] = NULL;
+			}
+		}
+		free(ht->recs);
+
+		ht->recs = NULL;
+	}
+	ht->memSize = 0;
+	ht->dataCount = 0;
+}
+
+bool IsTabEmpty(const HashTable* ht) {
 	return ht->dataCount == 0;
 }
-bool IsTabFull(struct HashTable* ht) {
+
+bool IsTabFull(const HashTable* ht) {
 	return ht->dataCount == ht->memSize;
 }
 
-TElem* FindRecordTab(struct HashTable* ht, TKey k)
-{
-	if (ht->recs == NULL | IsTabEmpty(&ht)) return NULL;
+TElem* FindRecordTab(HashTable* ht, TKey k) {
+	if ((ht->recs == NULL) | IsTabEmpty(ht)) return NULL;
 
 	ht->currPos = HashFunc(k) % ht->memSize;
 	for (int i = 0; i < ht->memSize; i++)
@@ -47,9 +69,8 @@ TElem* FindRecordTab(struct HashTable* ht, TKey k)
 	return NULL;
 }
 
-void InsRecordTab(struct HashTable* ht, TKey k, TElem val)
-{
-	if (ht->recs == NULL) return NULL;
+void InsRecordTab(HashTable* ht, TKey k, TElem val) {
+	if (ht->recs == NULL) return;
 
 	ht->currPos = HashFunc(k) % ht->memSize;
 
@@ -69,10 +90,10 @@ void InsRecordTab(struct HashTable* ht, TKey k, TElem val)
 		}
 		else if (ht->recs[ht->currPos] == NULL)
 		{
-			ht->recs[ht->currPos] = (TElem*)calloc(1, sizeof(struct Record));
+			ht->recs[ht->currPos] = (Record*)calloc(1, sizeof(struct Record));
 			ht->recs[ht->currPos]->key = k;
 
-			ht->recs[ht->currPos]->value = (TElem*)calloc(1, sizeof(TElem));
+			ht->recs[ht->currPos]->value = (Record*)calloc(1, sizeof(TElem));
 			ht->recs[ht->currPos]->value[0] = val;
 			ht->recs[ht->currPos]->countValues = 1;
 			ht->dataCount++;
@@ -81,9 +102,8 @@ void InsRecordTab(struct HashTable* ht, TKey k, TElem val)
 		ht->currPos = (ht->currPos + HASH_STEP) % ht->memSize;
 	}
 }
-void DelRecordTab(struct HashTable* ht, TKey k)
-{
-	void* tmp = FindRecordTab(&ht, k);
+void DelRecordTab(HashTable* ht, TKey k) {
+	void* tmp = FindRecordTab(ht, k);
 	if (tmp == NULL) return;
 
 	for (int i = 0; i < ht->recs[ht->currPos]->countValues; i++)

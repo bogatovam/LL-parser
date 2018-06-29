@@ -2,17 +2,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void InitStack(struct Stack* st) {
+void InitStack(Stack* st) {
 	st->first = NULL;
 	st->dataCount = 0;
 }
 
-bool IsStackEmpty(struct Stack* st) {
+bool IsStackEmpty(Stack* st) {
 	return st->dataCount == 0;
 }
 
-void Push(struct Stack* st, void* val) {
-	struct Link* tmp = calloc(1, sizeof(struct Link));
+void Push(Stack* st, void* val) {
+	Link* tmp = calloc(1, sizeof(struct Link));
 
 	tmp->value = val; 
 	tmp->next = st->first;
@@ -20,9 +20,10 @@ void Push(struct Stack* st, void* val) {
 
 	st->dataCount++;
 }
-void* Pop(struct Stack* st) {
+
+void* Pop(Stack* st) {
 	if (!IsStackEmpty(st)) {
-		struct Link* tmp = st->first;
+		Link* tmp = st->first;
 
 		void* tmpVal = st->first->value;
 		st->first = st->first->next;
@@ -33,7 +34,8 @@ void* Pop(struct Stack* st) {
 	}
 	return NULL;
 }
-void* Top(struct Stack* st) {
+
+void* Top(Stack* st) {
 	if (!IsStackEmpty(st)) {
 		return st->first->value;
 	}

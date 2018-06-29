@@ -4,10 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "grammatic.h"
+#include "grammar.h"
 
-void InitGrammatic(struct Grammatic *g, char startNterm, char * term, int numTerm, char * nterm, int numNterm)
-{
+void InitGrammar(Grammar *g, char startNterm, char * term, int numTerm, char * nterm, int numNterm) {
 	g->term = term;
 	g->nterm = nterm;
 	g->startNterm = startNterm;
@@ -16,53 +15,38 @@ void InitGrammatic(struct Grammatic *g, char startNterm, char * term, int numTer
 	g->countTerm = numTerm;
 
 	InitTab(&g->product, numNterm);
-	//for (int i = 0; i < g->countNterm; i++)
-	//	InitInsert(&g->product, nterm[i]);
 
 	g->FirstSets = NULL;
 	g->FollowSets = NULL;
 }
 
-//void InitInsert(struct HashTable* ht, TKey k) {
-//	if (ht->recs == NULL) return;
-//
-//	ht->currPos = HashFunc(k) % ht->memSize;
-//
-//	for (int i = 0; i < ht->memSize; i++)
-//	{
-//		if (ht->recs[ht->currPos] == NULL)
-//		{
-//			ht->recs[ht->currPos] = (TElem*)calloc(1, sizeof(struct Record));
-//			ht->recs[ht->currPos]->key = k;
-//
-//			ht->recs[ht->currPos]->value = (TElem*)calloc(1, sizeof(TElem));
-//			ht->recs[ht->currPos]->countValues = 0;
-//			break;
-//		}
-//		ht->currPos = (ht->currPos + HASH_STEP) % ht->memSize;
-//	}
-//}
+void ClearGrammar(Grammar *g) {
+	for (int i = 0; i < g->countNterm; g++) {
+		free(g->FirstSets[i]);
+		free(g->FollowSets[i]);
+	}
+	free(g->FirstSets);
+	free(g->FollowSets);
 
-void ClearGrammatic(struct Grammatic *g) {
+	g->FirstSets = g->FollowSets = NULL;
 
+	free(g->term);
+	free(g->nterm);
+	g->countNterm = g->countTerm = 0;
+	ClearTable(&g->product);
 }
 
-bool IsTerm(struct Grammatic *g, char c)
-{
-	for (int i = 0; i < g->countTerm; i++)
-		if (g->term[i] == c) return true;
+bool IsTerm(const Grammar *g, char c) {
+	if (strchr(g->term, c) != NULL) return true;
 	return false;
 }
 
-bool IsNterm(struct Grammatic *g, char c)
-{
-	for (int i = 0; i < g->countNterm; i++)
-		if (g->nterm[i] == c) return true;
+bool IsNterm(const Grammar *g, char c) {
+	if (strchr(g->nterm, c) != NULL) return true;
 	return false;
 }
 
-void AddProduct(struct Grammatic *g, char nterm, char * product)
-{
+void AddProduct(Grammar *g, char nterm, char * product) {
 	int i = 0, prevI = 0;
 	for (i = 0; product[i] != '\0'; i++) {
 		if (product[i + 1] == '|' || product[i + 1] == '\0') {
@@ -77,7 +61,7 @@ void AddProduct(struct Grammatic *g, char nterm, char * product)
 	}
 }
 
-void CreateFirstSets(struct Grammatic *g) {
+void CreateFirstSets(Grammar *g) {
 	char** waiting = calloc(2, sizeof(char*));
 	bool* ready = calloc(g->countNterm, sizeof(bool));
 
@@ -88,7 +72,7 @@ void CreateFirstSets(struct Grammatic *g) {
 
 	for (int numNterm = 0; numNterm < g->countNterm; numNterm++, currNterm = g->nterm[numNterm]) {
 		char** tmp = FindRecordTab(&g->product, currNterm);
-		g->FirstSets[g->product.currPos] = calloc(g->countTerm*g->countNterm, sizeof(char)); //!!!
+		g->FirstSets[g->product.currPos] = calloc(g->countTerm*g->countNterm, sizeof(char));
 		g->FirstSets[g->product.currPos][0] = '\0';
 
 		if (tmp != NULL) {
@@ -137,8 +121,8 @@ void CreateFirstSets(struct Grammatic *g) {
 	free(ready);
 }
 
-void CreateFollowSets(struct Grammatic *g) {
-	bool flag = true; //были изменени€ на этой итерации
+void CreateFollowSets(Grammar *g) {
+	bool flag = true;
 	bool* changed = calloc(g->countNterm, sizeof(bool));
 	char** waiting = calloc(2, sizeof(char*));
 
@@ -147,13 +131,12 @@ void CreateFollowSets(struct Grammatic *g) {
 
 	for (int i = 0; i < g->countNterm; i++) {
 		changed[i] = false;
-		g->FollowSets[i] = calloc(g->countTerm*g->countNterm + 888, sizeof(char));
+		g->FollowSets[i] = calloc(g->countTerm*g->countNterm , sizeof(char));
 		g->FollowSets[i][0]= '\0';
 	}
 
 	FindRecordTab(&g->product, g->startNterm);
 	strcat(g->FollowSets[g->product.currPos], "$");
-	//ƒобавить необходимые множества first в follow нетерминалов
 	char currNterm = g->nterm[0];
 	int j = 0;
 
@@ -227,7 +210,7 @@ void CreateFollowSets(struct Grammatic *g) {
 	free(changed);
 }
 
-char* FIRST(struct Grammatic *g, char c) {
+char* FIRST(Grammar *g, char c) {
 	if (IsNterm(g, c)) {
 		if (g->FirstSets == NULL) {
 			g->FirstSets = calloc(g->countNterm, sizeof(char*));
@@ -243,7 +226,7 @@ char* FIRST(struct Grammatic *g, char c) {
 	}
 }
 
-char* FOLLOW(struct Grammatic *g, char c) {
+char* FOLLOW(Grammar *g, char c) {
 	if (IsNterm(g, c)) {
 		if (g->FollowSets == NULL) {
 			g->FollowSets = calloc(g->countNterm, sizeof(char*));

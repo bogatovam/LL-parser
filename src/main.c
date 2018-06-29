@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "logger.h"
-#include "grammatic.h"
+#include "grammar.h"
 #include "parser.h"
 
 #define MAX_STRING_LENGTH 10
@@ -24,55 +24,22 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-	struct Grammatic g;
-	struct LL_Parser p;
-	InitGrammatic(&g,'S', "012'", 4, "SB", 2);
+	Grammar g;
+	InitGrammar(&g,'S', "012", 3, "SB", 2);
 	AddProduct(&g, 'S', "B2");
-	AddProduct(&g, 'B', "1|2");
+	AddProduct(&g, 'B', "1|0");
 
-	//InitGrammatic(&g,'E', "+*()i", 5, "EKTMF", 5);
-	//AddProduct(&g, 'E', "TK");
-	//AddProduct(&g, 'K', "+TK");
-	//AddProduct(&g, 'T', "FM");
-	//AddProduct(&g, 'M', "*FM");
-	//AddProduct(&g, 'F', "(E)|i");
-	//AddProduct(&g, 'M', e);
-	//AddProduct(&g, 'K', e);
 	char* c = g.nterm;
 	for (; *c != '\0'; c++) {
-		lprintf("FOLLOW: %s,\t", FOLLOW(&g, *c));
-		printf("%c ", *c);
-		printf("FOLLOW: %s,\t", FOLLOW(&g, *c));
-		printf("FIRST: %s\n", FIRST(&g, *c));
+		lprintf("%c: ", *c);
+		lprintf("FIRST: %s\t", FIRST(&g, *c));
+		lprintf("FOLLOW: %s\n", FOLLOW(&g, *c));
 	}
-	printf("\n");
+	lprintf("\n");
 
+	LL_Parser p;
 	InitParser(&p,&g);
-     c = g.nterm;
-	printf("\t");
-	for (int j = 0; j < g.countTerm; j++)
-		printf("%c\t ", g.term[j]);
-	printf("$\t ");
-	printf("\n");
-
-	for (; *c != '\0'; c++) {
-		printf("%c\t", *c);
-		struct HashTable* ht = *FindRecordTab(&p.parserTable, *c);
-		for (int j = 0; j < g.countTerm; j++) {
-			char** tmp = FindRecordTab(ht, g.term[j]);
-			if (tmp != NULL) {
-					printf("%s\t", tmp[0]);
-			}
-			else printf("err\t");
-		}
-		char** tmp = FindRecordTab(ht, '$');
-		if (tmp != NULL) {
-				printf("%s\t", tmp[0]);
-		}
-		else printf("err\t");
-		printf("\n");
-	}
-
+	PrintParserTable(&p, &g);
 	Parse(&p, &g, str);
 	return EXIT_SUCCESS;
 }
